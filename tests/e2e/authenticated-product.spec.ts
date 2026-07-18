@@ -7,7 +7,7 @@ async function enableTestTurnstile(page: Page) {
   await page.addInitScript(() => {
     window.turnstile = {
       render: (_container, options) => {
-        setTimeout(() => options.callback("signalboard-local-test-token"), 200);
+        (window as Window & { __signalboardTurnstileCallback?: (token: string) => void }).__signalboardTurnstileCallback = options.callback;
         return "signalboard-test-widget";
       },
       remove: () => undefined,
@@ -19,6 +19,8 @@ async function enableTestTurnstile(page: Page) {
 async function signUp(page: Page, prefix: string) {
   await enableTestTurnstile(page);
   await page.goto("/sign-up");
+  await page.waitForFunction(() => Boolean((window as Window & { __signalboardTurnstileCallback?: (token: string) => void }).__signalboardTurnstileCallback));
+  await page.evaluate(() => (window as Window & { __signalboardTurnstileCallback?: (token: string) => void }).__signalboardTurnstileCallback?.("signalboard-local-test-token"));
   await page.getByRole("textbox", { name: "Email" }).fill(`${prefix}-${Date.now()}@example.com`);
   await page.getByRole("textbox", { name: "Password", exact: true }).fill(password);
   const submit = page.getByRole("button", { name: "Create account" });
@@ -46,18 +48,32 @@ test("authenticated Project CRUD persists and updates Activity and analytics", a
   await expect(page.getByRole("heading", { name: "Your Project overview" })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
 
-  await page.getByRole("button", { name: "Load Sample Data" }).click();
+  await page.getByRole("button", { name: "Open profile menu" }).click();
+  await page.getByRole("menuitem", { name: "View Demo" }).click();
   await expect(page.getByRole("link", { name: "Release notes" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create Project", exact: true })).toHaveCount(1);
+  const statusChart = page.getByRole("img", { name: /18 total Projects/ });
+  await statusChart.locator(".recharts-sector").first().hover();
+  const statusTooltip = page.getByText("Planning — 4 projects — 22%", { exact: true });
+  await expect(statusTooltip).toBeVisible();
+  expect((await statusTooltip.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(190);
   await page.getByRole("link", { name: "Projects", exact: true }).first().click();
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.getByText("18 projects", { exact: true })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
+
+  await page.getByRole("button", { name: "Open profile menu" }).click();
+  await page.getByRole("menuitem", { name: "View Demo" }).click();
+  await expect(page.getByText("Demo data is already loaded.", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("18 projects", { exact: true })).toBeVisible();
 
   const createTrigger = page.locator("main").getByRole("button", { name: "Create Project" });
   await createTrigger.click();
   const createDialog = page.getByRole("dialog", { name: "Create Project" });
   await expect(createDialog).toBeVisible();
   await expect(createDialog.getByRole("textbox", { name: "Title" })).toBeFocused();
+  await expect(createDialog.getByLabel("Deadline").locator("xpath=..").locator("svg")).toHaveCount(0);
   await createDialog.getByRole("textbox", { name: "Title" }).fill(title);
   await createDialog.getByRole("textbox", { name: "Description" }).fill("Authenticated browser acceptance project.");
   await createDialog.getByRole("textbox", { name: "Project Lead" }).fill("QA Lead");

@@ -127,8 +127,13 @@ export async function deleteProjectAction(id: string) {
 
 export async function loadSampleProjectsAction() {
   const supabase = await requireUser();
-  const { error } = await supabase.rpc("load_sample_project_set");
+  const { data, error } = await supabase.rpc("load_sample_project_set");
   if (error) throw new Error("We couldn\u2019t load Sample Data.");
   revalidatePath("/dashboard");
   revalidatePath("/projects");
+  const result = data?.[0];
+  return {
+    insertedCount: Number(result?.inserted_count ?? 0),
+    totalProjects: Number(result?.total_projects ?? 0),
+  };
 }

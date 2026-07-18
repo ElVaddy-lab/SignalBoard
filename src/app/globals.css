@@ -125,6 +125,11 @@ a { color: inherit; text-decoration: none; }
 .user-menu-name { max-width: 128px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
 .user-menu-summary { display: grid; gap: 2px; border-bottom: 1px solid var(--border); padding: 10px; }
 .user-menu-summary span { overflow: hidden; color: var(--ink-muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.user-menu-demo { display: flex; min-height: 42px; align-items: center; gap: 9px; border-radius: 5px; outline: 0; padding: 0 10px; }
+.user-menu-demo[data-highlighted] { background: var(--surface-subtle); }
+.user-menu-demo[data-disabled] { cursor: wait; opacity: .6; }
+.user-menu-feedback { margin: 2px 10px 8px; color: var(--success); font-size: 12px; line-height: 1.35; }
+.user-menu-feedback-error { color: var(--danger); }
 .user-signout { display: flex; width: 100%; min-height: 42px; align-items: center; gap: 9px; border: 0; border-radius: 5px; background: transparent; color: var(--danger); margin-top: 6px; padding: 0 10px; text-align: left; }
 .user-signout:hover { background: #fff0ed; }
 .mobile-menu-popover { z-index: 40; width: min(320px, calc(100vw - 24px)); overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-overlay); padding: 6px; }

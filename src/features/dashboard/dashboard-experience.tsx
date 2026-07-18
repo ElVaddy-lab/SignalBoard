@@ -2,9 +2,8 @@
 
 import { AlertCircle, ArrowRight, ClipboardList, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import type { Project, ProjectActivity, ProjectStatus } from "@/data/projects";
 import { activityMessageKey } from "@/features/activity/contracts";
-import { loadSampleProjectsAction } from "@/features/projects/server";
 import type { AppLocale } from "@/i18n/config";
 
 import { formatDate, formatDateTime } from "../projects/project-presentation";
@@ -35,9 +33,8 @@ export function DashboardExperience({ data, forceState }: DashboardExperiencePro
 function DashboardPopulated({ data }: { data: DashboardData }) {
   const { activity, metrics, recentProjects, statusDistribution, trend, upcoming } = data;
   const t = useTranslations("dashboard");
-  const projects = useTranslations("projects");
   return <div className={styles.dashboard}>
-    <header className={styles.dashboardIntro}><div><h1>{t("greeting")}</h1><p>{t("intro")}</p></div><Link className={styles.createLink} href="/projects?new=1">{projects("createProject")}</Link></header>
+    <header className={styles.dashboardIntro}><div><h1>{t("greeting")}</h1><p>{t("intro")}</p></div></header>
     <section aria-label={t("metrics")} className={styles.metricsGrid}>
       <Metric detail={t("currentProjects")} label={t("totalProjects")} value={metrics.total} />
       <Metric detail={t("inProgressNow")} label={t("activeProjects")} value={metrics.active} />
@@ -60,13 +57,22 @@ function CompletionTrend({ trend }: { trend: DashboardData["trend"] }) {
 }
 
 const statusOrder: ProjectStatus[] = ["Planning", "Active", "Review", "Completed"];
+type StatusDatum = { status: ProjectStatus; count: number; name: string };
+
+function StatusTooltip({ active, payload, total, format }: TooltipContentProps & { total: number; format: (datum: StatusDatum, percentage: number) => string }) {
+  const datum = payload?.[0]?.payload as StatusDatum | undefined;
+  if (!active || !datum) return null;
+  const percentage = total ? Math.round(datum.count / total * 100) : 0;
+  return <div className={styles.statusTooltip}>{format(datum, percentage)}</div>;
+}
+
 function StatusOverview({ distribution, total }: { distribution: DashboardData["statusDistribution"]; total: number }) {
   const t = useTranslations("dashboard");
   const projects = useTranslations("projects");
   const values = statusOrder.map((status) => ({ status, count: distribution.find((item) => item.status === status)?.count ?? 0, name: projects(`statusValues.${status}`) }));
   const colors: Record<ProjectStatus, string> = { Planning: "#0F5962", Active: "#287C7D", Review: "#CF9113", Completed: "#4F8A50" };
   const items = values.map(({ status, count }) => t("statusCount", { status: projects(`statusValues.${status}`), count })).join(", ");
-  return <Panel className={styles.statusPanel}><h2>{t("statusOverview")}</h2><div className={`${styles.statusContent} ${statusStyles.content}`}><div aria-label={t("statusSummary", { total, items })} className={`${styles.donut} ${statusStyles.donut}`} role="img"><ResponsiveContainer debounce={100} height="100%" initialDimension={{ width: 150, height: 150 }} width="100%"><PieChart><Pie data={values} dataKey="count" innerRadius="61%" isAnimationActive={false} outerRadius="88%" paddingAngle={2} stroke="none">{values.map(({ status }) => <Cell fill={colors[status]} key={status} />)}</Pie><Tooltip contentStyle={{ background: "#fbf9f4", border: "1px solid #dcd4c7", borderRadius: 6, color: "#20201e" }} formatter={(value) => [value, t("total")]} isAnimationActive={false} /></PieChart></ResponsiveContainer><span className={`${styles.donutCenter} ${statusStyles.center}`}><b>{total}</b><small>{t("total")}</small></span></div><ul>{values.map(({ status, count }) => <li key={status}><Status value={status} /><b>{count} <small>{Math.round(count / total * 100)}%</small></b></li>)}</ul></div><table className="sr-only"><caption>{t("statusDistribution")}</caption><thead><tr><th scope="col">{projects("status")}</th><th scope="col">{t("total")}</th></tr></thead><tbody>{values.map(({ status, count }) => <tr key={status}><th scope="row">{projects(`statusValues.${status}`)}</th><td>{count}</td></tr>)}</tbody></table></Panel>;
+  return <Panel className={styles.statusPanel}><h2>{t("statusOverview")}</h2><div className={`${styles.statusContent} ${statusStyles.content}`}><div aria-label={t("statusSummary", { total, items })} className={`${styles.donut} ${statusStyles.donut}`} role="img"><ResponsiveContainer debounce={100} height="100%" initialDimension={{ width: 150, height: 150 }} width="100%"><PieChart><Pie data={values} dataKey="count" innerRadius="61%" isAnimationActive={false} outerRadius="88%" paddingAngle={2} stroke="none">{values.map(({ status }) => <Cell fill={colors[status]} key={status} />)}</Pie><Tooltip content={(props) => <StatusTooltip {...props} format={(datum, percentage) => t("statusTooltip", { status: datum.name, count: datum.count, percentage })} total={total} />} isAnimationActive={false} /></PieChart></ResponsiveContainer><span className={`${styles.donutCenter} ${statusStyles.center}`}><b>{total}</b><small>{t("total")}</small></span></div><ul>{values.map(({ status, count }) => <li key={status}><Status value={status} /><b>{count} <small>{Math.round(count / total * 100)}%</small></b></li>)}</ul></div><table className="sr-only"><caption>{t("statusDistribution")}</caption><thead><tr><th scope="col">{projects("status")}</th><th scope="col">{t("total")}</th></tr></thead><tbody>{values.map(({ status, count }) => <tr key={status}><th scope="row">{projects(`statusValues.${status}`)}</th><td>{count}</td></tr>)}</tbody></table></Panel>;
 }
 
 function formatWeek(weekStart: string, locale: AppLocale) {
@@ -95,12 +101,9 @@ function RecentActivity({ activity }: { activity: ProjectActivity[] }) {
 }
 
 export function DashboardEmpty() {
-  const router = useRouter();
   const t = useTranslations("dashboard");
   const projects = useTranslations("projects");
-  const [pending, setPending] = useState(false);
-  const load = async () => { setPending(true); try { await loadSampleProjectsAction(); router.refresh(); } finally { setPending(false); } };
-  return <div className={styles.dashboard}><header className={styles.dashboardIntro}><div><h1>{t("greeting")}</h1><p>{t("intro")}</p></div></header><section className={styles.emptyDashboard}><ClipboardList aria-hidden="true" size={70} /><h2>{t("startTracking")}</h2><p>{t("emptyDescription")}</p><div><Link className={styles.createLink} href="/projects?new=1">{projects("createProject")}</Link><Button loading={pending} onClick={load} variant="secondary">{t("loadSampleData")}</Button></div><ol><li><b>1</b><span><strong>{t("stepCreateTitle")}</strong>{t("stepCreateDescription")}</span></li><li><b>2</b><span><strong>{t("stepTrackTitle")}</strong>{t("stepTrackDescription")}</span></li><li><b>3</b><span><strong>{t("stepReviewTitle")}</strong>{t("stepReviewDescription")}</span></li></ol></section></div>;
+  return <div className={styles.dashboard}><header className={styles.dashboardIntro}><div><h1>{t("greeting")}</h1><p>{t("intro")}</p></div></header><section className={styles.emptyDashboard}><ClipboardList aria-hidden="true" size={70} /><h2>{t("startTracking")}</h2><p>{t("emptyDescription")}</p><div><Link className={styles.createLink} href="/projects?new=1">{projects("createProject")}</Link></div><ol><li><b>1</b><span><strong>{t("stepCreateTitle")}</strong>{t("stepCreateDescription")}</span></li><li><b>2</b><span><strong>{t("stepTrackTitle")}</strong>{t("stepTrackDescription")}</span></li><li><b>3</b><span><strong>{t("stepReviewTitle")}</strong>{t("stepReviewDescription")}</span></li></ol></section></div>;
 }
 
 export function DashboardSkeleton() { const t = useTranslations("dashboard"); return <div aria-busy="true" aria-label={t("loading")} className={`${styles.dashboard} ${styles.dashboardSkeleton}`}><div className={styles.skeletonIntro} /><div className={styles.metricsGrid}>{Array.from({ length: 5 }, (_, index) => <div className={styles.skeletonMetric} key={index} />)}</div><div className={styles.analyticsGrid}><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /></div><div className={styles.lowerGrid}><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /></div></div>; }

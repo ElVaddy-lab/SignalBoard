@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { AlertCircle, CalendarDays, X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 
@@ -115,7 +115,7 @@ export function ProjectSheet({ open, project, onClose, onSave }: ProjectSheetPro
               <input aria-describedby={errors.projectLead ? "project-lead-error" : undefined} aria-invalid={Boolean(errors.projectLead)} id="project-lead" maxLength={80} onChange={(event) => update("projectLead", event.target.value)} placeholder={t("projectLeadPlaceholder")} ref={(element) => { fieldRefs.current.projectLead = element ?? undefined; }} required value={values.projectLead} />
             </FieldError>
             <FieldError error={errors.deadline} id="project-deadline" label={t("deadline")}>
-              <div className={styles.dateInput}><input aria-describedby={errors.deadline ? "project-deadline-error" : undefined} aria-invalid={Boolean(errors.deadline)} id="project-deadline" onChange={(event) => update("deadline", event.target.value)} ref={(element) => { fieldRefs.current.deadline = element ?? undefined; }} type="date" value={values.deadline} /><CalendarDays aria-hidden="true" size={18} /></div>
+              <input aria-describedby={errors.deadline ? "project-deadline-error" : undefined} aria-invalid={Boolean(errors.deadline)} id="project-deadline" onChange={(event) => update("deadline", event.target.value)} ref={(element) => { fieldRefs.current.deadline = element ?? undefined; }} type="date" value={values.deadline} />
               {deadlineInPast ? <p className={styles.deadlineWarning}>{t("pastDeadlineWarning")}</p> : null}
             </FieldError>
             <footer className={styles.sheetFooter}>

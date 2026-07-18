@@ -53,7 +53,11 @@
   "shell": {
     "createProject": "Create Project",
     "profileMenu": "Open profile menu",
-    "greeting": "Your private project workspace"
+    "greeting": "Your private project workspace",
+    "viewDemo": "View Demo",
+    "loadingDemo": "Loading demo\u2026",
+    "demoAlreadyLoaded": "Demo data is already loaded.",
+    "demoLoadFailed": "Could not load demo data. Try again."
   },
   "projects": {
     "title": "Projects",
@@ -175,6 +179,7 @@
     "statusDistribution": "Status distribution",
     "statusSummary": "{total} total Projects. {items}",
     "statusCount": "{status}: {count}",
+    "statusTooltip": "{status} \u2014 {count, plural, one {# project} other {# projects}} \u2014 {percentage}%",
     "upcomingDeadlines": "Upcoming deadlines",
     "viewAll": "View all",
     "noUpcomingDeadlines": "No upcoming Deadlines.",
@@ -182,7 +187,6 @@
     "recentActivity": "Recent activity",
     "startTracking": "Start tracking your Projects",
     "emptyDescription": "Create your first private Project to organize progress, set priorities, and review practical analytics.",
-    "loadSampleData": "Load Sample Data",
     "stepCreateTitle": "Create a Project",
     "stepCreateDescription": "Set up your Project and define key details.",
     "stepTrackTitle": "Track progress",
