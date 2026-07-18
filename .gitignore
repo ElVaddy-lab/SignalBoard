@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# tests and reports
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright-mcp/
+
+# local environment and Supabase state
+.env
+.env.local
+.env.*.local
+!.env.example
+supabase/.branches/
+supabase/.temp/
+
+# editor and OS
+.DS_Store
+Thumbs.db
+*.log
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts

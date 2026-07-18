@@ -1,0 +1,78 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "signalboard": {
+    "color": {
+      "canvas": { "$type": "color", "$value": "#F6F2EA" },
+      "surface": { "$type": "color", "$value": "#FBF9F4" },
+      "surfaceSubtle": { "$type": "color", "$value": "#F1ECE2" },
+      "ink": { "$type": "color", "$value": "#20201E" },
+      "inkMuted": { "$type": "color", "$value": "#6E6A63" },
+      "inkFaint": { "$type": "color", "$value": "#938D84" },
+      "sidebar": { "$type": "color", "$value": "#181918" },
+      "sidebarRaised": { "$type": "color", "$value": "#222321" },
+      "border": { "$type": "color", "$value": "#DCD4C7" },
+      "borderStrong": { "$type": "color", "$value": "#C9BFAF" },
+      "primary": { "$type": "color", "$value": "#C94A2C" },
+      "primaryHover": { "$type": "color", "$value": "#AE3D24" },
+      "primarySoft": { "$type": "color", "$value": "#F4DED5" },
+      "petrol": { "$type": "color", "$value": "#0F5962" },
+      "petrolSoft": { "$type": "color", "$value": "#DCEBEC" },
+      "success": { "$type": "color", "$value": "#4F8A50" },
+      "successSoft": { "$type": "color", "$value": "#E3EEE0" },
+      "review": { "$type": "color", "$value": "#CF9113" },
+      "reviewSoft": { "$type": "color", "$value": "#F6E9C9" },
+      "danger": { "$type": "color", "$value": "#C83F2B" },
+      "dangerSoft": { "$type": "color", "$value": "#F5DDD7" },
+      "focus": { "$type": "color", "$value": "#2563EB" }
+    },
+    "space": {
+      "1": { "$type": "dimension", "$value": "4px" },
+      "2": { "$type": "dimension", "$value": "8px" },
+      "3": { "$type": "dimension", "$value": "12px" },
+      "4": { "$type": "dimension", "$value": "16px" },
+      "5": { "$type": "dimension", "$value": "20px" },
+      "6": { "$type": "dimension", "$value": "24px" },
+      "8": { "$type": "dimension", "$value": "32px" },
+      "10": { "$type": "dimension", "$value": "40px" },
+      "12": { "$type": "dimension", "$value": "48px" },
+      "16": { "$type": "dimension", "$value": "64px" }
+    },
+    "radius": {
+      "control": { "$type": "dimension", "$value": "6px" },
+      "panel": { "$type": "dimension", "$value": "8px" },
+      "sheet": { "$type": "dimension", "$value": "12px" },
+      "pill": { "$type": "dimension", "$value": "999px" }
+    },
+    "size": {
+      "sidebarDesktop": { "$type": "dimension", "$value": "216px" },
+      "headerDesktop": { "$type": "dimension", "$value": "88px" },
+      "controlDesktop": { "$type": "dimension", "$value": "48px" },
+      "controlMinimum": { "$type": "dimension", "$value": "44px" },
+      "sheetDesktop": { "$type": "dimension", "$value": "480px" },
+      "dialog": { "$type": "dimension", "$value": "440px" }
+    },
+    "border": {
+      "default": { "$type": "border", "$value": { "color": "{signalboard.color.border}", "style": "solid", "width": "1px" } },
+      "strong": { "$type": "border", "$value": { "color": "{signalboard.color.borderStrong}", "style": "solid", "width": "1px" } }
+    },
+    "shadow": {
+      "overlay": { "$type": "shadow", "$value": { "color": "#20201E29", "offsetX": "0px", "offsetY": "20px", "blur": "60px", "spread": "0px" } },
+      "focus": { "$type": "shadow", "$value": { "color": "#2563EB47", "offsetX": "0px", "offsetY": "0px", "blur": "0px", "spread": "3px" } }
+    },
+    "font": {
+      "family": { "$type": "fontFamily", "$value": ["IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", "sans-serif"] },
+      "size": {
+        "metadata": { "$type": "dimension", "$value": "12px" },
+        "compact": { "$type": "dimension", "$value": "14px" },
+        "body": { "$type": "dimension", "$value": "15px" },
+        "section": { "$type": "dimension", "$value": "16px" },
+        "page": { "$type": "dimension", "$value": "30px" },
+        "metric": { "$type": "dimension", "$value": "52px" }
+      }
+    },
+    "motion": {
+      "fast": { "$type": "duration", "$value": "140ms" },
+      "overlay": { "$type": "duration", "$value": "180ms" }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>SignalBoard</title>
+  <rect width="64" height="64" rx="16" fill="#0f5962"/>
+  <path d="M14 43h10l6-12 7 7 6-17h7" fill="none" stroke="#f4efe6" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+  <circle cx="50" cy="21" r="4" fill="#c94a2c"/>
+</svg>
