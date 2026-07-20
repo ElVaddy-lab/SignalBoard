@@ -1,9 +1,15 @@
 .content.content {
-  align-items: center;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: minmax(0, 1fr);
   margin-top: 18px;
+}
+
+.chartRow {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 150px minmax(190px, 1fr);
 }
 
 .donut.donut {
@@ -29,6 +35,20 @@
   top: 50%;
   transform: translate(-50%, -50%);
   z-index: 1;
+  pointer-events: none;
+}
+
+.tooltipRegion {
+  align-items: center;
+  display: flex;
+  min-height: 58px;
+  min-width: 0;
+}
+
+.tooltipRegion > span {
+  color: var(--sb-ink-muted, #6e6a63);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .content.content ul {
@@ -37,24 +57,42 @@
 }
 
 .content.content li {
-  font-size: 13px;
-  gap: 8px;
   min-width: 0;
 }
 
-.content.content li b {
+.content.content li button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  color: inherit;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  justify-content: space-between;
+  min-height: 32px;
+  padding: 3px 5px;
+  width: 100%;
+}
+
+.content.content li button:hover,
+.content.content li button:focus-visible {
+  background: var(--sb-surface-subtle, #f1ece2);
+}
+
+.content.content li button b {
   flex: 0 0 auto;
   font-size: 14px;
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
-  .content.content {
-    grid-template-columns: minmax(0, 1fr);
-  }
+@media (max-width: 560px) {
+  .chartRow { grid-template-columns: minmax(0, 1fr); }
 
   .donut.donut {
     height: 150px;
     width: 150px;
   }
+
+  .tooltipRegion { justify-content: center; min-height: 48px; text-align: center; }
 }

@@ -57,16 +57,18 @@ test("authenticated Project CRUD persists and updates Activity and analytics", a
   const statusTooltip = page.getByText("Planning — 4 projects — 22%", { exact: true });
   await expect(statusTooltip).toBeVisible();
   expect((await statusTooltip.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(190);
+  const chartBox = await statusChart.boundingBox();
+  const totalBox = await statusChart.locator("span").filter({ hasText: /^18Total$/ }).boundingBox();
+  const tooltipBox = await statusTooltip.boundingBox();
+  expect(chartBox && tooltipBox ? tooltipBox.x >= chartBox.x + chartBox.width : false).toBe(true);
+  expect(chartBox && totalBox ? Math.abs(totalBox.x + totalBox.width / 2 - (chartBox.x + chartBox.width / 2)) : Number.POSITIVE_INFINITY).toBeLessThanOrEqual(2);
+  expect(chartBox && totalBox ? Math.abs(totalBox.y + totalBox.height / 2 - (chartBox.y + chartBox.height / 2)) : Number.POSITIVE_INFINITY).toBeLessThanOrEqual(2);
+  await page.getByRole("button", { name: /Planning.*4.*22%/ }).focus();
+  await expect(statusTooltip).toBeVisible();
   await page.getByRole("link", { name: "Projects", exact: true }).first().click();
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.getByText("18 projects", { exact: true })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
-
-  await page.getByRole("button", { name: "Open profile menu" }).click();
-  await page.getByRole("menuitem", { name: "View Demo" }).click();
-  await expect(page.getByText("Demo data is already loaded.", { exact: true })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByText("18 projects", { exact: true })).toBeVisible();
 
   const createTrigger = page.locator("main").getByRole("button", { name: "Create Project" });
   await createTrigger.click();
@@ -80,6 +82,21 @@ test("authenticated Project CRUD persists and updates Activity and analytics", a
   await createDialog.getByLabel("Deadline").fill("2020-01-01");
   await createDialog.getByRole("button", { name: "Create Project" }).click();
   await expect(createDialog).toBeHidden();
+
+  await page.getByRole("button", { name: "Open profile menu" }).click();
+  await page.getByRole("menuitem", { name: "Remove Demo" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Release notes", { exact: true })).toHaveCount(0);
+  await page.getByRole("link", { name: "Projects", exact: true }).first().click();
+  await expect(page.getByText("1 project", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Open profile menu" }).click();
+  await page.getByRole("menuitem", { name: "View Demo" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("link", { name: "Release notes" }).first()).toBeVisible();
+  await page.getByRole("link", { name: "Projects", exact: true }).first().click();
+  await expect(page.getByText("19 projects", { exact: true })).toBeVisible();
 
   const search = page.getByRole("textbox", { name: "Search Projects" });
   await search.fill(title);

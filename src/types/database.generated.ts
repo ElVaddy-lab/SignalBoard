@@ -18,6 +18,7 @@ export type Database = {
           occurred_at: string
           project_id: string | null
           project_title: string
+          sample_key: string | null
           user_id: string
         }
         Insert: {
@@ -28,6 +29,7 @@ export type Database = {
           occurred_at?: string
           project_id?: string | null
           project_title: string
+          sample_key?: string | null
           user_id: string
         }
         Update: {
@@ -38,6 +40,7 @@ export type Database = {
           occurred_at?: string
           project_id?: string | null
           project_title?: string
+          sample_key?: string | null
           user_id?: string
         }
         Relationships: [
@@ -135,6 +138,10 @@ export type Database = {
           total_projects: number
         }[]
       }
+      get_dashboard_snapshot: {
+        Args: { p_local_date?: string; p_timezone?: string }
+        Returns: Json
+      }
       get_status_distribution: {
         Args: never
         Returns: {
@@ -183,6 +190,14 @@ export type Database = {
         Returns: {
           anchor_date: string
           inserted_count: number
+          total_projects: number
+        }[]
+      }
+      toggle_sample_project_set: {
+        Args: never
+        Returns: {
+          affected_count: number
+          enabled: boolean
           total_projects: number
         }[]
       }

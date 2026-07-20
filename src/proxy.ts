@@ -6,17 +6,17 @@ const privatePrefixes = ["/dashboard", "/projects"];
 const publicOnlyPaths = ["/sign-in", "/sign-up"];
 
 export async function proxy(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+  const { response, claims } = await updateSession(request);
   const { pathname } = request.nextUrl;
   const privatePath = privatePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
-  if (privatePath && !user) {
+  if (privatePath && !claims?.sub) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     return NextResponse.redirect(url);
   }
 
-  if (user && publicOnlyPaths.includes(pathname)) {
+  if (claims?.sub && publicOnlyPaths.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

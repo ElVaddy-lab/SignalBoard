@@ -1,6 +1,6 @@
 begin;
 
-select plan(30);
+select plan(46);
 
 -- The approved public database seam: schema, policies, trigger side effects and RPC output.
 select ok(to_regtype('public.project_status') is not null, 'project_status enum exists');
@@ -9,6 +9,8 @@ select ok(to_regclass('public.project_activities') is not null, 'project_activit
 select ok(to_regprocedure('public.list_projects(text,project_status[],project_priority[],project_deadline_filter,date,text,integer,integer)') is not null, 'list_projects RPC exists');
 select ok(to_regprocedure('public.get_dashboard_metrics(text,date)') is not null, 'dashboard metrics RPC exists');
 select ok(to_regprocedure('public.load_sample_project_set()') is not null, 'sample loader RPC exists');
+select ok(to_regprocedure('public.toggle_sample_project_set()') is not null, 'sample toggle RPC exists');
+select ok(to_regprocedure('public.get_dashboard_snapshot(text,date)') is not null, 'dashboard snapshot RPC exists');
 
 insert into auth.users (id, aud, role, email)
 values
@@ -136,9 +138,47 @@ select is((select count(*) from public.list_projects())::integer, 0, 'list_proje
 
 select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 delete from public.projects where id = :'isolation_project';
+
+insert into public.projects (title, description, status, priority, project_lead)
+values ('Retained user project', 'This row and its activity must survive demo cleanup.', 'active', 'high', 'Margaret Hamilton')
+returning id as retained_project \gset
+
+select is((select count(*) from public.project_activities where project_id = :'retained_project')::integer, 1, 'user project starts with one activity');
 select is((select inserted_count from public.load_sample_project_set()), 18, 'first sample load creates 18 projects');
 select is((select inserted_count from public.load_sample_project_set()), 0, 'second sample load is idempotent');
 select is((select count(*) from public.projects where sample_key is not null)::integer, 18, 'sample set has exactly 18 projects');
+
+select is(
+  (public.get_dashboard_snapshot('UTC', current_date) #>> '{metrics,total_projects}')::integer,
+  19,
+  'dashboard snapshot includes user and demo projects'
+);
+select is(
+  jsonb_typeof(public.get_dashboard_snapshot('UTC', current_date) -> 'activity'),
+  'array',
+  'dashboard snapshot returns activity as an array'
+);
+
+delete from public.projects
+where id = (select id from public.projects where sample_key is not null order by sample_key limit 1);
+select is((select count(*) from public.projects where sample_key is not null)::integer, 17, 'manually deleting one demo leaves a partial enabled set');
+
+select enabled, affected_count, total_projects from public.toggle_sample_project_set() \gset remove_
+select is(:'remove_enabled'::boolean, false, 'toggle disables a partial demo set');
+select is(:'remove_affected_count'::integer, 17, 'toggle removes all remaining demo projects');
+select is(:'remove_total_projects'::bigint, 1::bigint, 'toggle reports only the retained user project');
+select is((select count(*) from public.projects where sample_key is not null)::integer, 0, 'demo cleanup leaves no demo projects');
+select is((select count(*) from public.project_activities where sample_key is not null)::integer, 0, 'demo cleanup removes all demo activity including detached history');
+select is((select count(*) from public.project_activities where project_id = :'retained_project')::integer, 1, 'demo cleanup preserves user project activity');
+set local role postgres;
+select is((select count(*) from public.sample_project_sets)::integer, 0, 'demo cleanup removes the sample set marker');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
+
+select enabled, affected_count, total_projects from public.toggle_sample_project_set() \gset restore_
+select is(:'restore_enabled'::boolean, true, 'next toggle restores demo mode');
+select is(:'restore_affected_count'::integer, 18, 'restoring demo mode inserts exactly 18 projects');
+select is((select count(*) from public.projects where sample_key is not null)::integer, 18, 'restored demo set contains exactly 18 projects');
 
 select * from finish();
 rollback;

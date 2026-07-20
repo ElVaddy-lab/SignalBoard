@@ -56,8 +56,11 @@
     "greeting": "Your private project workspace",
     "viewDemo": "View Demo",
     "loadingDemo": "Loading demo\u2026",
+    "removeDemo": "Remove Demo",
+    "removingDemo": "Removing demo\u2026",
     "demoAlreadyLoaded": "Demo data is already loaded.",
-    "demoLoadFailed": "Could not load demo data. Try again."
+    "demoLoadFailed": "Could not load demo data. Try again.",
+    "demoRemoveFailed": "Could not remove demo data. Try again."
   },
   "projects": {
     "title": "Projects",
@@ -180,6 +183,7 @@
     "statusSummary": "{total} total Projects. {items}",
     "statusCount": "{status}: {count}",
     "statusTooltip": "{status} \u2014 {count, plural, one {# project} other {# projects}} \u2014 {percentage}%",
+    "statusTooltipHint": "Hover or focus a status for details",
     "upcomingDeadlines": "Upcoming deadlines",
     "viewAll": "View all",
     "noUpcomingDeadlines": "No upcoming Deadlines.",

@@ -8,17 +8,18 @@ import type { Messages } from "@/i18n/messages";
 
 type AppHeaderProps = {
   email: string;
+  initialDemoEnabled: boolean;
   locale: AppLocale;
   messages: Messages;
 };
 
-export function AppHeader({ email, locale, messages }: AppHeaderProps) {
+export function AppHeader({ email, initialDemoEnabled, locale, messages }: AppHeaderProps) {
   return (
     <header className="app-header">
       <p className="app-header-context">{messages.shell.greeting}</p>
       <div className="app-header-actions">
         <LanguageMenu locale={locale} messages={messages} />
-        <UserMenu email={email} messages={messages} />
+        <UserMenu email={email} initialDemoEnabled={initialDemoEnabled} messages={messages} />
         <Link className="button-primary header-create-button" href="/projects?new=1"><Plus aria-hidden="true" size={19} />{messages.shell.createProject}</Link>
       </div>
     </header>

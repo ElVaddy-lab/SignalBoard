@@ -4,6 +4,7 @@ import { CircleHelp, FolderKanban, LayoutDashboard, Settings } from "lucide-reac
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { NavigationPendingIndicator } from "@/components/layout/navigation-pending-indicator";
 import type { Messages } from "@/i18n/messages";
 
 type AppSidebarProps = { messages: Messages };
@@ -17,16 +18,17 @@ export function AppSidebar({ messages }: AppSidebarProps) {
 
   return (
     <aside className="app-sidebar">
-      <Link aria-label="SignalBoard dashboard" className="app-wordmark" href="/dashboard">
+      <Link aria-label="SignalBoard dashboard" className="app-wordmark" href="/dashboard" prefetch={true}>
         SignalBoard<span aria-hidden="true">.</span>
       </Link>
       <nav aria-label="Primary navigation" className="sidebar-nav">
         {navigation.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href === "/projects" && pathname.startsWith("/projects/"));
           return (
-            <Link aria-current={active ? "page" : undefined} className={active ? "sidebar-link selected" : "sidebar-link"} href={href} key={href}>
+            <Link aria-current={active ? "page" : undefined} className={active ? "sidebar-link selected" : "sidebar-link"} href={href} key={href} prefetch={true}>
               <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
               <span>{label}</span>
+              <NavigationPendingIndicator />
             </Link>
           );
         })}

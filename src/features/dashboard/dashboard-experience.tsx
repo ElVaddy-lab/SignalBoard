@@ -3,7 +3,7 @@
 import { AlertCircle, ArrowRight, ClipboardList, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -42,8 +42,10 @@ function DashboardPopulated({ data }: { data: DashboardData }) {
       <Metric detail={t("needAttention")} label={t("overdueProjects")} tone="danger" value={metrics.overdue} />
       <Metric detail={metrics.lateCompletionRate === null ? t("noDeadlineData") : t("completedWithDeadline", { value: metrics.lateCompletionRate })} label={t("lateCompletions")} value={metrics.lateCompletions} />
     </section>
-    <div className={styles.analyticsGrid}><CompletionTrend trend={trend} /><StatusOverview distribution={statusDistribution} total={metrics.total} /><UpcomingDeadlines projects={upcoming} /></div>
-    <div className={styles.lowerGrid}><RecentProjects projects={recentProjects} /><RecentActivity activity={activity} /></div>
+    <div className={styles.dashboardColumns}>
+      <div className={styles.dashboardPrimary}><CompletionTrend trend={trend} /><RecentProjects projects={recentProjects} /><RecentActivity activity={activity} /></div>
+      <div className={styles.dashboardSecondary}><StatusOverview distribution={statusDistribution} total={metrics.total} /><UpcomingDeadlines projects={upcoming} /></div>
+    </div>
   </div>;
 }
 
@@ -57,22 +59,17 @@ function CompletionTrend({ trend }: { trend: DashboardData["trend"] }) {
 }
 
 const statusOrder: ProjectStatus[] = ["Planning", "Active", "Review", "Completed"];
-type StatusDatum = { status: ProjectStatus; count: number; name: string };
-
-function StatusTooltip({ active, payload, total, format }: TooltipContentProps & { total: number; format: (datum: StatusDatum, percentage: number) => string }) {
-  const datum = payload?.[0]?.payload as StatusDatum | undefined;
-  if (!active || !datum) return null;
-  const percentage = total ? Math.round(datum.count / total * 100) : 0;
-  return <div className={styles.statusTooltip}>{format(datum, percentage)}</div>;
-}
-
 function StatusOverview({ distribution, total }: { distribution: DashboardData["statusDistribution"]; total: number }) {
   const t = useTranslations("dashboard");
   const projects = useTranslations("projects");
+  const [activeStatus, setActiveStatus] = useState<ProjectStatus | null>(null);
   const values = statusOrder.map((status) => ({ status, count: distribution.find((item) => item.status === status)?.count ?? 0, name: projects(`statusValues.${status}`) }));
   const colors: Record<ProjectStatus, string> = { Planning: "#0F5962", Active: "#287C7D", Review: "#CF9113", Completed: "#4F8A50" };
   const items = values.map(({ status, count }) => t("statusCount", { status: projects(`statusValues.${status}`), count })).join(", ");
-  return <Panel className={styles.statusPanel}><h2>{t("statusOverview")}</h2><div className={`${styles.statusContent} ${statusStyles.content}`}><div aria-label={t("statusSummary", { total, items })} className={`${styles.donut} ${statusStyles.donut}`} role="img"><ResponsiveContainer debounce={100} height="100%" initialDimension={{ width: 150, height: 150 }} width="100%"><PieChart><Pie data={values} dataKey="count" innerRadius="61%" isAnimationActive={false} outerRadius="88%" paddingAngle={2} stroke="none">{values.map(({ status }) => <Cell fill={colors[status]} key={status} />)}</Pie><Tooltip content={(props) => <StatusTooltip {...props} format={(datum, percentage) => t("statusTooltip", { status: datum.name, count: datum.count, percentage })} total={total} />} isAnimationActive={false} /></PieChart></ResponsiveContainer><span className={`${styles.donutCenter} ${statusStyles.center}`}><b>{total}</b><small>{t("total")}</small></span></div><ul>{values.map(({ status, count }) => <li key={status}><Status value={status} /><b>{count} <small>{Math.round(count / total * 100)}%</small></b></li>)}</ul></div><table className="sr-only"><caption>{t("statusDistribution")}</caption><thead><tr><th scope="col">{projects("status")}</th><th scope="col">{t("total")}</th></tr></thead><tbody>{values.map(({ status, count }) => <tr key={status}><th scope="row">{projects(`statusValues.${status}`)}</th><td>{count}</td></tr>)}</tbody></table></Panel>;
+  const activeDatum = values.find(({ status }) => status === activeStatus);
+  const showStatus = (status: ProjectStatus) => setActiveStatus(status);
+  const clearStatus = () => setActiveStatus(null);
+  return <Panel className={styles.statusPanel}><h2>{t("statusOverview")}</h2><div className={`${styles.statusContent} ${statusStyles.content}`}><div className={statusStyles.chartRow}><div aria-label={t("statusSummary", { total, items })} className={`${styles.donut} ${statusStyles.donut}`} role="img"><ResponsiveContainer debounce={100} height="100%" initialDimension={{ width: 150, height: 150 }} width="100%"><PieChart><Pie data={values} dataKey="count" innerRadius="61%" isAnimationActive={false} onMouseEnter={(_, index) => showStatus(values[index].status)} onMouseLeave={clearStatus} outerRadius="88%" paddingAngle={2} stroke="none">{values.map(({ status }) => <Cell fill={colors[status]} key={status} />)}</Pie></PieChart></ResponsiveContainer><span className={`${styles.donutCenter} ${statusStyles.center}`}><b>{total}</b><small>{t("total")}</small></span></div><div aria-live="polite" className={statusStyles.tooltipRegion}>{activeDatum ? <div className={styles.statusTooltip}>{t("statusTooltip", { status: activeDatum.name, count: activeDatum.count, percentage: total ? Math.round(activeDatum.count / total * 100) : 0 })}</div> : <span>{t("statusTooltipHint")}</span>}</div></div><ul>{values.map(({ status, count }) => <li key={status}><button onBlur={clearStatus} onFocus={() => showStatus(status)} onMouseEnter={() => showStatus(status)} onMouseLeave={clearStatus} type="button"><Status value={status} /><b>{count} <small>{total ? Math.round(count / total * 100) : 0}%</small></b></button></li>)}</ul></div><table className="sr-only"><caption>{t("statusDistribution")}</caption><thead><tr><th scope="col">{projects("status")}</th><th scope="col">{t("total")}</th></tr></thead><tbody>{values.map(({ status, count }) => <tr key={status}><th scope="row">{projects(`statusValues.${status}`)}</th><td>{count}</td></tr>)}</tbody></table></Panel>;
 }
 
 function formatWeek(weekStart: string, locale: AppLocale) {
@@ -97,7 +94,7 @@ function RecentActivity({ activity }: { activity: ProjectActivity[] }) {
   const t = useTranslations("dashboard");
   const activityT = useTranslations("activity");
   const locale = useLocale() as AppLocale;
-  return <Panel className={styles.recentActivity}><h2>{t("recentActivity")}</h2><ol>{activity.map((item) => <li key={item.id}><span className={styles.activitySymbol}>{item.type === "created" ? "+" : item.type === "deleted" ? "\u2212" : "\u2197"}</span><div><b>{activityT(activityMessageKey(item))}</b><small>{item.projectId ? <Link href={`/projects/${item.projectId}`}>{item.projectTitle}</Link> : item.projectTitle}</small></div><time>{formatDateTime(item.occurredAt, locale)}</time></li>)}</ol></Panel>;
+  return <Panel className={`${styles.recentActivity} ${styles.dashboardActivity}`}><h2>{t("recentActivity")}</h2><ol>{activity.map((item) => <li key={item.id}><span className={styles.activitySymbol}>{item.type === "created" ? "+" : item.type === "deleted" ? "\u2212" : "\u2197"}</span><div><b>{activityT(activityMessageKey(item))}</b><small>{item.projectId ? <Link href={`/projects/${item.projectId}`}>{item.projectTitle}</Link> : item.projectTitle}</small></div><time>{formatDateTime(item.occurredAt, locale)}</time></li>)}</ol></Panel>;
 }
 
 export function DashboardEmpty() {
@@ -106,6 +103,6 @@ export function DashboardEmpty() {
   return <div className={styles.dashboard}><header className={styles.dashboardIntro}><div><h1>{t("greeting")}</h1><p>{t("intro")}</p></div></header><section className={styles.emptyDashboard}><ClipboardList aria-hidden="true" size={70} /><h2>{t("startTracking")}</h2><p>{t("emptyDescription")}</p><div><Link className={styles.createLink} href="/projects?new=1">{projects("createProject")}</Link></div><ol><li><b>1</b><span><strong>{t("stepCreateTitle")}</strong>{t("stepCreateDescription")}</span></li><li><b>2</b><span><strong>{t("stepTrackTitle")}</strong>{t("stepTrackDescription")}</span></li><li><b>3</b><span><strong>{t("stepReviewTitle")}</strong>{t("stepReviewDescription")}</span></li></ol></section></div>;
 }
 
-export function DashboardSkeleton() { const t = useTranslations("dashboard"); return <div aria-busy="true" aria-label={t("loading")} className={`${styles.dashboard} ${styles.dashboardSkeleton}`}><div className={styles.skeletonIntro} /><div className={styles.metricsGrid}>{Array.from({ length: 5 }, (_, index) => <div className={styles.skeletonMetric} key={index} />)}</div><div className={styles.analyticsGrid}><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /></div><div className={styles.lowerGrid}><div className={styles.skeletonPanel} /><div className={styles.skeletonPanel} /></div></div>; }
+export function DashboardSkeleton() { const t = useTranslations("dashboard"); return <div aria-busy="true" aria-label={t("loading")} className={`${styles.dashboard} ${styles.dashboardSkeleton}`}><div className={styles.skeletonIntro} /><div className={styles.metricsGrid}>{Array.from({ length: 5 }, (_, index) => <div className={styles.skeletonMetric} key={index} />)}</div><div className={styles.dashboardColumns}><div className={styles.dashboardPrimary}><div className={`${styles.skeletonPanel} ${styles.skeletonTrend}`} /><div className={`${styles.skeletonPanel} ${styles.skeletonRecentProjects}`} /><div className={`${styles.skeletonPanel} ${styles.skeletonActivity}`} /></div><div className={styles.dashboardSecondary}><div className={`${styles.skeletonPanel} ${styles.skeletonStatus}`} /><div className={`${styles.skeletonPanel} ${styles.skeletonDeadlines}`} /></div></div></div>; }
 
 export function DashboardError({ onRetry, retrying }: { onRetry: () => void; retrying?: boolean }) { const t = useTranslations("dashboard"); const projects = useTranslations("projects"); return <div className={styles.dashboard}><section className={styles.dashboardError}><AlertCircle aria-hidden="true" size={60} /><div><h1>{t("loadErrorTitle")}</h1><p>{t("loadErrorDescription")}</p><div><Button loading={retrying} onClick={onRetry}><RefreshCw aria-hidden="true" size={18} />{t("tryAgain")}</Button><Link href="/projects">{projects("title")} <ArrowRight aria-hidden="true" size={17} /></Link></div><small>{t("loadErrorHint")}</small></div></section></div>; }

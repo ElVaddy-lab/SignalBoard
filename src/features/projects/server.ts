@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { Database, Json } from "@/types/database.generated";
 import { createClient } from "@/lib/supabase/server";
 import type { Project, ProjectActivity, ProjectPriority, ProjectStatus } from "@/data/projects";
+import { getAuthenticatedClaims } from "@/features/auth/server-session";
 
 import { createProjectSchema, parseProjectListParams, type ProjectInput } from "./contracts";
 
@@ -59,9 +60,9 @@ function dateInTimezone(timezone: string) {
 }
 
 async function requireUser() {
+  const claims = await getAuthenticatedClaims();
+  if (!claims) throw new Error("You must be signed in to manage Projects.");
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) throw new Error("You must be signed in to manage Projects.");
   return supabase;
 }
 
@@ -125,15 +126,16 @@ export async function deleteProjectAction(id: string) {
   revalidatePath("/projects");
 }
 
-export async function loadSampleProjectsAction() {
+export async function toggleSampleProjectsAction() {
   const supabase = await requireUser();
-  const { data, error } = await supabase.rpc("load_sample_project_set");
+  const { data, error } = await supabase.rpc("toggle_sample_project_set");
   if (error) throw new Error("We couldn\u2019t load Sample Data.");
   revalidatePath("/dashboard");
   revalidatePath("/projects");
   const result = data?.[0];
   return {
-    insertedCount: Number(result?.inserted_count ?? 0),
+    enabled: Boolean(result?.enabled),
+    affectedCount: Number(result?.affected_count ?? 0),
     totalProjects: Number(result?.total_projects ?? 0),
   };
 }

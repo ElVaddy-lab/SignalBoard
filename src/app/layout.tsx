@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { TimezoneSync } from "@/features/preferences/components/timezone-sync";
@@ -8,6 +9,13 @@ import { getMessages } from "@/i18n/messages";
 import { I18nProvider } from "@/i18n/provider";
 
 import "./globals.css";
+
+const signalFont = IBM_Plex_Sans({
+  display: "swap",
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-signal",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "SignalBoard \u2014 Private project tracking",
@@ -24,7 +32,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body>
+      <body className={signalFont.variable}>
         <I18nProvider locale={locale} messages={messages} timeZone={timeZone}>{children}</I18nProvider>
         <TimezoneSync />
       </body>

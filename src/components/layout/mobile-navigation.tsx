@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
+import { NavigationPendingIndicator } from "@/components/layout/navigation-pending-indicator";
 import { signOutAction } from "@/features/auth/actions";
 import { setLocaleCookie } from "@/features/preferences/locale-client";
 import { localeLabels, type AppLocale } from "@/i18n/config";
@@ -39,7 +40,7 @@ export function MobileNavigation({ email, locale, messages }: MobileNavigationPr
   return (
     <>
       <div className="mobile-app-bar">
-        <Link aria-label="SignalBoard dashboard" className="mobile-wordmark" href="/dashboard">SignalBoard<span aria-hidden="true">.</span></Link>
+        <Link aria-label="SignalBoard dashboard" className="mobile-wordmark" href="/dashboard" prefetch={true}>SignalBoard<span aria-hidden="true">.</span></Link>
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <button aria-label={messages.navigation.openMenu} className="mobile-menu-button" type="button"><Menu aria-hidden="true" size={22} /></button>
@@ -74,9 +75,10 @@ export function MobileNavigation({ email, locale, messages }: MobileNavigationPr
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href === "/projects" && pathname.startsWith("/projects/"));
           return (
-            <Link aria-current={active ? "page" : undefined} className={active ? "mobile-nav-link selected" : "mobile-nav-link"} href={href} key={href}>
+            <Link aria-current={active ? "page" : undefined} className={active ? "mobile-nav-link selected" : "mobile-nav-link"} href={href} key={href} prefetch={true}>
               <Icon aria-hidden="true" size={21} strokeWidth={1.8} />
               <span>{label}</span>
+              <NavigationPendingIndicator />
             </Link>
           );
         })}

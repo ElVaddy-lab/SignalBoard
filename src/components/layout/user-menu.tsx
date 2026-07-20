@@ -1,40 +1,38 @@
 "use client";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { ChevronDown, LoaderCircle, LogOut, PlayCircle, UserRound } from "lucide-react";
+import { ChevronDown, LoaderCircle, LogOut, PlayCircle, Trash2, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { signOutAction } from "@/features/auth/actions";
-import { loadSampleProjectsAction } from "@/features/projects/server";
+import { toggleSampleProjectsAction } from "@/features/projects/server";
 import type { Messages } from "@/i18n/messages";
 
-type UserMenuProps = { email: string; messages: Messages };
+type UserMenuProps = { email: string; initialDemoEnabled: boolean; messages: Messages };
 
-export function UserMenu({ email, messages }: UserMenuProps) {
+export function UserMenu({ email, initialDemoEnabled, messages }: UserMenuProps) {
   const label = email.split("@")[0] || "Account";
   const signOutForm = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [demoEnabled, setDemoEnabled] = useState(initialDemoEnabled);
   const [loadingDemo, setLoadingDemo] = useState(false);
-  const [demoFeedback, setDemoFeedback] = useState<"alreadyLoaded" | "error" | null>(null);
+  const [demoFeedback, setDemoFeedback] = useState<"loadError" | "removeError" | null>(null);
 
-  const loadDemo = async (event: Event) => {
+  const toggleDemo = async (event: Event) => {
     event.preventDefault();
     if (loadingDemo) return;
     setLoadingDemo(true);
     setDemoFeedback(null);
     try {
-      const result = await loadSampleProjectsAction();
-      if (result.insertedCount === 0) {
-        setDemoFeedback("alreadyLoaded");
-        return;
-      }
+      const result = await toggleSampleProjectsAction();
+      setDemoEnabled(result.enabled);
       setOpen(false);
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setDemoFeedback("error");
+      setDemoFeedback(demoEnabled ? "removeError" : "loadError");
     } finally {
       setLoadingDemo(false);
     }
@@ -53,12 +51,12 @@ export function UserMenu({ email, messages }: UserMenuProps) {
         <DropdownMenu.Portal>
           <DropdownMenu.Content align="end" className="user-menu-popover user-menu-radix" sideOffset={8}>
           <div className="user-menu-summary"><strong>{label}</strong><span>{email}</span></div>
-          <DropdownMenu.Item className="user-menu-demo" disabled={loadingDemo} onSelect={loadDemo}>
-            {loadingDemo ? <LoaderCircle aria-hidden="true" className="spin" size={17} /> : <PlayCircle aria-hidden="true" size={17} />}
-            {loadingDemo ? messages.shell.loadingDemo : messages.shell.viewDemo}
+          <DropdownMenu.Item className="user-menu-demo" disabled={loadingDemo} onSelect={toggleDemo}>
+            {loadingDemo ? <LoaderCircle aria-hidden="true" className="spin" size={17} /> : demoEnabled ? <Trash2 aria-hidden="true" size={17} /> : <PlayCircle aria-hidden="true" size={17} />}
+            {loadingDemo ? (demoEnabled ? messages.shell.removingDemo : messages.shell.loadingDemo) : (demoEnabled ? messages.shell.removeDemo : messages.shell.viewDemo)}
           </DropdownMenu.Item>
-          {demoFeedback ? <p className={demoFeedback === "error" ? "user-menu-feedback user-menu-feedback-error" : "user-menu-feedback"} role={demoFeedback === "error" ? "alert" : "status"}>
-            {demoFeedback === "error" ? messages.shell.demoLoadFailed : messages.shell.demoAlreadyLoaded}
+          {demoFeedback ? <p className="user-menu-feedback user-menu-feedback-error" role="alert">
+            {demoFeedback === "removeError" ? messages.shell.demoRemoveFailed : messages.shell.demoLoadFailed}
           </p> : null}
           <DropdownMenu.Separator className="mobile-menu-separator" />
           <form action={signOutAction} ref={signOutForm}>
