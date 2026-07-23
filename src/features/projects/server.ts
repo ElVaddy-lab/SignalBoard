@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { z } from "zod";
 
 import type { Database, Json } from "@/types/database.generated";
 import { createClient } from "@/lib/supabase/server";
 import type { Project, ProjectActivity, ProjectPriority, ProjectStatus } from "@/data/projects";
 import { getAuthenticatedClaims } from "@/features/auth/server-session";
+import { getTimezone } from "@/features/preferences/timezone";
+import { getLocalDateInTimezone } from "@/features/preferences/timezone-contract";
 
 import { createProjectSchema, parseProjectListParams, type ProjectInput } from "./contracts";
 
@@ -46,19 +47,6 @@ function mapActivity(row: ActivityRow): ProjectActivity {
   return { id: row.id, projectId: row.project_id, projectTitle: row.project_title, type: row.activity_type as ProjectActivity["type"], changedFields: normalized, ...pair, occurredAt: row.occurred_at };
 }
 
-async function getTimezone() {
-  const cookieStore = await cookies();
-  return cookieStore.get("signalboard-timezone")?.value ?? "UTC";
-}
-
-function dateInTimezone(timezone: string) {
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
-    const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    return `${value.year}-${value.month}-${value.day}`;
-  } catch { return undefined; }
-}
-
 async function requireUser() {
   const claims = await getAuthenticatedClaims();
   if (!claims) throw new Error("You must be signed in to manage Projects.");
@@ -75,7 +63,7 @@ export async function getProjectsPage(rawParams: Record<string, string | string[
     p_status: params.status.map((status) => statusValues[status]),
     p_priority: params.priority.map((priority) => priorityValues[priority]),
     p_deadline: deadlineValues[params.deadline],
-    p_local_date: dateInTimezone(timezone),
+    p_local_date: getLocalDateInTimezone(timezone),
     p_sort: sortValues[params.sort],
     p_page: params.page,
     p_page_size: 12,

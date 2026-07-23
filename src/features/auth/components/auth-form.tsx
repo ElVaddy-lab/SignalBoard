@@ -95,7 +95,19 @@ export function AuthForm({ locale, messages, mode }: AuthFormProps) {
       </div>
 
       <input name="captchaToken" type="hidden" value={captchaToken ?? ""} />
-      <Turnstile onToken={setCaptchaToken} resetKey={state.attemptId} unavailableMessage={messages.auth.securityUnavailable} />
+      <Turnstile
+        messages={{
+          label: messages.auth.securityVerificationLabel,
+          loading: messages.auth.securityLoading,
+          ready: messages.auth.securityReady,
+          error: messages.auth.securityError,
+          expired: messages.auth.securityExpired,
+          retry: messages.auth.securityRetry,
+          unavailable: messages.auth.securityUnavailable,
+        }}
+        onToken={setCaptchaToken}
+        resetKey={state.attemptId}
+      />
       <p className="turnstile-notice">
         {messages.auth.turnstileNotice} {" "}
         <a href="https://www.cloudflare.com/privacypolicy/" rel="noreferrer" target="_blank">{messages.auth.privacy}</a>

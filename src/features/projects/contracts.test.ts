@@ -33,14 +33,36 @@ describe("Project validation contract", () => {
     expect(createProjectSchema.safeParse(value).success).toBe(false);
   });
 
-  it("keeps past Deadlines valid so the UI can show a warning instead", () => {
+  it.each([
+    ["past", "2024-01-01"],
+    ["current", "2026-07-23"],
+    ["future", "2035-12-31"],
+    ["leap-day", "2028-02-29"],
+  ])("keeps a valid %s Deadline", (_case, deadline) => {
     const result = createProjectSchema.safeParse({
       title: "Website redesign",
       projectLead: "Sarah Lee",
-      deadline: "2024-01-01",
+      deadline,
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it.each([
+    ["impossible day", "2026-02-31"],
+    ["non-leap day", "2025-02-29"],
+    ["invalid month", "2026-13-01"],
+    ["zero day", "2026-01-00"],
+    ["year zero", "0000-01-01"],
+    ["invalid shape", "23-07-2026"],
+  ])("rejects an %s at the server validation boundary", (_case, deadline) => {
+    const result = createProjectSchema.safeParse({
+      title: "Website redesign",
+      projectLead: "Sarah Lee",
+      deadline,
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it("exports only the approved lifecycle and priority values", () => {

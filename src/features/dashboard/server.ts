@@ -1,9 +1,9 @@
 "use server";
 
-import { cookies } from "next/headers";
-
 import type { Project, ProjectActivity, ProjectPriority, ProjectStatus } from "@/data/projects";
 import { getAuthenticatedClaims } from "@/features/auth/server-session";
+import { getTimezone } from "@/features/preferences/timezone";
+import { getLocalDateInTimezone } from "@/features/preferences/timezone-contract";
 import type { Json } from "@/types/database.generated";
 import { createClient } from "@/lib/supabase/server";
 
@@ -48,14 +48,6 @@ const mapActivity = (row: ActivityRow): ProjectActivity => {
   return { id: row.id, projectId: row.project_id, projectTitle: row.project_title, type: row.activity_type as ProjectActivity["type"], changedFields, ...pair, occurredAt: row.occurred_at };
 };
 
-function dateInTimezone(timezone: string) {
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
-    const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    return `${value.year}-${value.month}-${value.day}`;
-  } catch { return undefined; }
-}
-
 function isMissingSnapshotFunction(error: { code?: string; message?: string }) {
   return error.code === "PGRST202" || error.message?.includes("get_dashboard_snapshot") === true;
 }
@@ -96,8 +88,8 @@ export async function getDashboardData(): Promise<DashboardData> {
   const claims = await getAuthenticatedClaims();
   if (!claims) throw new Error("You must be signed in to view the Dashboard.");
   const supabase = await createClient();
-  const timezone = (await cookies()).get("signalboard-timezone")?.value ?? "UTC";
-  const localDate = dateInTimezone(timezone);
+  const timezone = await getTimezone();
+  const localDate = getLocalDateInTimezone(timezone);
   const { data, error } = await supabase.rpc("get_dashboard_snapshot", {
     p_timezone: timezone,
     p_local_date: localDate,

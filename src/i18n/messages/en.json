@@ -47,6 +47,12 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "securityUnavailable": "Security verification is unavailable in this environment.",
+    "securityVerificationLabel": "Security verification",
+    "securityLoading": "Loading security check\u2026",
+    "securityReady": "Security check complete.",
+    "securityError": "The security check could not load. Check your connection and try again.",
+    "securityExpired": "The security check expired. Try again to continue.",
+    "securityRetry": "Retry security check",
     "artLineOne": "Plan clearly.",
     "artLineTwo": "Deliver on time."
   },
