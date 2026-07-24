@@ -40,7 +40,7 @@ export function MobileNavigation({ email, locale, messages }: MobileNavigationPr
   return (
     <>
       <div className="mobile-app-bar">
-        <Link aria-label="SignalBoard dashboard" className="mobile-wordmark" href="/dashboard" prefetch={true}>SignalBoard<span aria-hidden="true">.</span></Link>
+        <Link aria-label={messages.navigation.dashboardAccessibleName} className="mobile-wordmark" href="/dashboard" prefetch={true}>SignalBoard<span aria-hidden="true">.</span></Link>
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <button aria-label={messages.navigation.openMenu} className="mobile-menu-button" type="button"><Menu aria-hidden="true" size={22} /></button>
@@ -71,7 +71,7 @@ export function MobileNavigation({ email, locale, messages }: MobileNavigationPr
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
       </div>
-      <nav aria-label="Primary navigation" className="mobile-bottom-nav">
+      <nav aria-label={messages.navigation.primaryNavigation} className="mobile-bottom-nav">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href === "/projects" && pathname.startsWith("/projects/"));
           return (

@@ -2,10 +2,15 @@
 @media (max-width: 1100px) { .metricsGrid { grid-template-columns: repeat(3, 1fr); row-gap: 20px; }.metric:nth-child(3) { border-right: 0; }.analyticsGrid { grid-template-columns: 1.3fr 1fr; }.deadlinesPanel { grid-column: span 2; }.lowerGrid { grid-template-columns: 1fr; }.recentActivity { max-width: none; } }
 @media (max-width: 720px) { .dashboard { padding: 0 16px 90px; }.dashboardIntro { align-items: flex-start; gap: 14px; }.dashboardIntro h1 { font-size: 27px; }.dashboardIntro p { font-size: 14px; }.createLink { font-size: 13px; min-height: 42px; padding: 0 12px; white-space: nowrap; }.metricsGrid { display: flex; gap: 10px; margin: 0 -16px 18px; overflow-x: auto; padding: 0 16px 4px; scroll-snap-type: x mandatory; }.metric { background: var(--sb-surface, #fbf9f4); border: 1px solid var(--sb-border, #dcd4c7); border-radius: 7px; flex: 0 0 125px; min-height: 103px; padding: 14px !important; scroll-snap-align: start; }.metric b { font-size: 39px; }.metric > span { font-size: 10px; }.metric small { font-size: 11px; }.analyticsGrid { grid-template-columns: 1fr; }.deadlinesPanel { grid-column: auto; }.trendPanel, .statusPanel, .deadlinesPanel { min-height: 0; padding: 18px; }.trendChart { height: 150px; }.trendTable { display: none; }.donut { height: 170px; width: 170px; }.statusContent { grid-template-columns: 1fr 1fr; }.deadlinesPanel li { grid-template-columns: 9px minmax(0,1fr) auto; }.deadlinesPanel li b { display: none; }.recentTableHead { display: none; }.recentRow { align-items: start; gap: 7px; grid-template-columns: 1.2fr .8fr; padding: 13px 0; }.recentRow > :nth-child(3), .recentRow > :nth-child(4), .recentRow > :nth-child(5) { display: none; }.recentRow > :nth-child(6) { text-align: right; }.recentActivity li { grid-template-columns: 30px minmax(0,1fr); }.recentActivity time { grid-column: 2; }.emptyDashboard { margin-top: 45px; padding: 30px 18px; }.emptyDashboard h2 { font-size: 25px; }.emptyDashboard > div { flex-direction: column; width: 100%; }.emptyDashboard > div > * { justify-content: center; width: 100%; }.emptyDashboard ol { gap: 16px; grid-template-columns: 1fr; }.emptyDashboard li { padding: 0; }.emptyDashboard li + li { border-left: 0; }.dashboardError { flex-direction: column; gap: 14px; padding: 24px; }.dashboardError > div > div { align-items: flex-start; flex-direction: column; gap: 12px; }.dashboardSkeleton .metricsGrid { display: grid; grid-template-columns: repeat(2, 1fr); }.skeletonMetric { margin: 0; } }
 .statusTooltip { background: var(--sb-surface, #fbf9f4); border: 1px solid var(--sb-border, #dcd4c7); border-radius: 6px; box-shadow: 0 8px 24px rgb(32 32 30 / 12%); color: var(--sb-ink, #20201e); min-width: 190px; padding: 9px 11px; white-space: nowrap; }
+.trendIslandSlot { min-height: 207px; }
+.statusIslandSlot { min-height: 246px; }
+.trendChartPlaceholder { background: linear-gradient(180deg, transparent 0 88%, var(--sb-border, #dcd4c7) 88% 89%, transparent 89%); height: 190px; margin-top: 17px; width: 100%; }
+.statusChartPlaceholder { background: var(--sb-surface-subtle, #f1ece2); border-radius: 7px; height: 230px; margin-top: 18px; opacity: .55; width: 100%; }
 
 /* Independent content columns prevent short cards from stretching to match long neighbours. */
 .dashboardColumns { align-items: start; display: grid; gap: 16px; grid-template-columns: minmax(0, 1.55fr) minmax(400px, .95fr); }
 .dashboardPrimary, .dashboardSecondary { display: grid; gap: 16px; min-width: 0; }
+.trendChart { min-width: 0; overflow: hidden; }
 .dashboardSecondary { grid-template-rows: auto minmax(0, 1fr); height: 100%; }
 .dashboardActivity ol { column-gap: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .dashboardActivity li { min-width: 0; }
@@ -35,4 +40,15 @@
 @media (max-width: 720px) {
   .trendChart { overflow: hidden; }
   .recentRow { min-width: 0; }
+}
+
+/* Text-only accents use stronger shades to retain AA contrast on paper surfaces. */
+.metric small,
+.deadlinesPanel li b {
+  color: #3b6f3d;
+}
+
+.deadlinesPanel header a,
+.recentProjects header a {
+  color: var(--sb-primary-hover, #ae3d24);
 }

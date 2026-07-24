@@ -1,6 +1,6 @@
 begin;
 
-select plan(46);
+select plan(53);
 
 -- The approved public database seam: schema, policies, trigger side effects and RPC output.
 select ok(to_regtype('public.project_status') is not null, 'project_status enum exists');
@@ -148,6 +148,15 @@ select is((select inserted_count from public.load_sample_project_set()), 18, 'fi
 select is((select inserted_count from public.load_sample_project_set()), 0, 'second sample load is idempotent');
 select is((select count(*) from public.projects where sample_key is not null)::integer, 18, 'sample set has exactly 18 projects');
 
+select set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);
+select is((select inserted_count from public.load_sample_project_set()), 18, 'User B can load an independent sample set');
+select is((select count(*) from public.projects where sample_key is not null)::integer, 18, 'User B sees only their 18 sample projects');
+select count(*)::integer as user_b_sample_activity_count
+from public.project_activities
+where sample_key is not null \gset
+select cmp_ok(:'user_b_sample_activity_count'::integer, '>', 0, 'User B has independent sample activity');
+
+select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 select is(
   (public.get_dashboard_snapshot('UTC', current_date) #>> '{metrics,total_projects}')::integer,
   19,
@@ -169,9 +178,29 @@ select is(:'remove_affected_count'::integer, 17, 'toggle removes all remaining d
 select is(:'remove_total_projects'::bigint, 1::bigint, 'toggle reports only the retained user project');
 select is((select count(*) from public.projects where sample_key is not null)::integer, 0, 'demo cleanup leaves no demo projects');
 select is((select count(*) from public.project_activities where sample_key is not null)::integer, 0, 'demo cleanup removes all demo activity including detached history');
+select is((select count(*) from public.projects where id = :'retained_project')::integer, 1, 'demo cleanup preserves the user project');
 select is((select count(*) from public.project_activities where project_id = :'retained_project')::integer, 1, 'demo cleanup preserves user project activity');
 set local role postgres;
-select is((select count(*) from public.sample_project_sets)::integer, 0, 'demo cleanup removes the sample set marker');
+select is(
+  (select count(*) from public.sample_project_sets where user_id = '11111111-1111-1111-1111-111111111111')::integer,
+  0,
+  'demo cleanup removes only User A sample set marker'
+);
+select is(
+  (select count(*) from public.sample_project_sets where user_id = '22222222-2222-2222-2222-222222222222')::integer,
+  1,
+  'demo cleanup preserves User B sample set marker'
+);
+select is(
+  (select count(*) from public.projects where user_id = '22222222-2222-2222-2222-222222222222' and sample_key is not null)::integer,
+  18,
+  'demo cleanup preserves User B sample projects'
+);
+select is(
+  (select count(*) from public.project_activities where user_id = '22222222-2222-2222-2222-222222222222' and sample_key is not null)::integer,
+  :'user_b_sample_activity_count'::integer,
+  'demo cleanup preserves User B sample activity'
+);
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 

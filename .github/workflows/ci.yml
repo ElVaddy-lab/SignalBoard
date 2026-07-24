@@ -50,3 +50,85 @@ jobs:
       - run: pnpm test:db
       - if: always()
         run: pnpm supabase:stop
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_EXTERNAL_SERVER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start and reset local Supabase
+        shell: bash
+        run: |
+          pnpm supabase:start
+          pnpm db:reset
+          pnpm exec supabase status -o env > "$RUNNER_TEMP/supabase.env"
+          source "$RUNNER_TEMP/supabase.env"
+          local_publishable_key="${PUBLISHABLE_KEY:-${ANON_KEY:-}}"
+          if [[ -z "${API_URL:-}" || -z "$local_publishable_key" ]]; then
+            echo "Local Supabase URL or publishable key is unavailable."
+            exit 1
+          fi
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$local_publishable_key" >> "$GITHUB_ENV"
+      - name: Start Next.js and wait for readiness
+        shell: bash
+        run: |
+          mkdir -p artifacts/ci-logs
+          pnpm dev --hostname 127.0.0.1 > artifacts/ci-logs/next.log 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/signalboard-next.pid"
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error "$PLAYWRIGHT_BASE_URL/sign-in" > /dev/null; then
+              exit 0
+            fi
+            if ! kill -0 "$(cat "$RUNNER_TEMP/signalboard-next.pid")" 2>/dev/null; then
+              cat artifacts/ci-logs/next.log
+              exit 1
+            fi
+            sleep 2
+          done
+          cat artifacts/ci-logs/next.log
+          exit 1
+      - name: Run desktop and mobile Playwright suites
+        run: pnpm test:e2e
+      - name: Collect local Supabase logs
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p artifacts/ci-logs/supabase
+          while read -r container; do
+            docker logs "$container" > "artifacts/ci-logs/supabase/$container.log" 2>&1 || true
+          done < <(docker ps -a --filter "name=_signalboard" --format "{{.Names}}")
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            playwright-report/
+            test-results/
+            artifacts/ci-logs/
+      - name: Stop local services
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/signalboard-next.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/signalboard-next.pid")" 2>/dev/null || true
+          fi
+          pnpm supabase:stop

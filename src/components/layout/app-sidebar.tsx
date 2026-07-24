@@ -18,10 +18,10 @@ export function AppSidebar({ messages }: AppSidebarProps) {
 
   return (
     <aside className="app-sidebar">
-      <Link aria-label="SignalBoard dashboard" className="app-wordmark" href="/dashboard" prefetch={true}>
+      <Link aria-label={messages.navigation.dashboardAccessibleName} className="app-wordmark" href="/dashboard" prefetch={true}>
         SignalBoard<span aria-hidden="true">.</span>
       </Link>
-      <nav aria-label="Primary navigation" className="sidebar-nav">
+      <nav aria-label={messages.navigation.primaryNavigation} className="sidebar-nav">
         {navigation.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href === "/projects" && pathname.startsWith("/projects/"));
           return (
@@ -33,7 +33,7 @@ export function AppSidebar({ messages }: AppSidebarProps) {
           );
         })}
       </nav>
-      <nav aria-label="Secondary navigation" className="sidebar-secondary">
+      <nav aria-label={messages.navigation.secondaryNavigation} className="sidebar-secondary">
         <button className="sidebar-link" disabled type="button"><Settings aria-hidden="true" size={20} strokeWidth={1.8} /><span>{messages.navigation.settings}</span></button>
         <button className="sidebar-link" disabled type="button"><CircleHelp aria-hidden="true" size={20} strokeWidth={1.8} /><span>{messages.navigation.help}</span></button>
       </nav>

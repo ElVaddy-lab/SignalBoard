@@ -81,6 +81,8 @@ pnpm test:e2e
 
 `pnpm check` runs the non-browser application release gate. Database and browser suites are separate because they own local services.
 
+CI runs the Playwright suite in a dedicated browser job against a freshly reset local Supabase stack. The job exports the local API URL and publishable key only for its own Next.js process, uses Cloudflare's public Turnstile test key, covers desktop and mobile Chromium, and retains traces, screenshots, the HTML report, and local service logs when a run fails.
+
 ## Portfolio screenshots
 
 The approved reference, desktop/mobile implementation captures and capture notes live in [`portfolio-screenshots/`](portfolio-screenshots/README.md). With the local app and Supabase stack running, regenerate the populated Dashboard captures with:

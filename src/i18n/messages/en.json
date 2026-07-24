@@ -15,7 +15,11 @@
     "settings": "Settings",
     "help": "Help",
     "signOut": "Sign out",
-    "openMenu": "Open navigation"
+    "openMenu": "Open navigation",
+    "skipToContent": "Skip to content",
+    "dashboardAccessibleName": "SignalBoard dashboard",
+    "primaryNavigation": "Primary navigation",
+    "secondaryNavigation": "Secondary navigation"
   },
   "auth": {
     "signInTitle": "Welcome back",

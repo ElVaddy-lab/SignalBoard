@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
 import { TimezoneSync } from "@/features/preferences/components/timezone-sync";
@@ -10,11 +10,12 @@ import { I18nProvider } from "@/i18n/provider";
 
 import "./globals.css";
 
-const signalFont = IBM_Plex_Sans({
+const signalFont = localFont({
   display: "swap",
-  subsets: ["cyrillic", "latin"],
+  fallback: ["Arial", "sans-serif"],
+  src: "./fonts/ibm-plex-sans-var-roman.woff2",
   variable: "--font-signal",
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
 });
 
 export const metadata: Metadata = {

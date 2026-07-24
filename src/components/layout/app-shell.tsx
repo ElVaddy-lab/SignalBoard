@@ -17,7 +17,7 @@ type AppShellProps = {
 export function AppShell({ children, email, initialDemoEnabled, locale, messages }: AppShellProps) {
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">Skip to content</a>
+      <a className="skip-link" href="#main-content">{messages.navigation.skipToContent}</a>
       <AppSidebar messages={messages} />
       <div className="app-main-frame">
         <AppHeader email={email} initialDemoEnabled={initialDemoEnabled} locale={locale} messages={messages} />

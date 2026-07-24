@@ -44,6 +44,10 @@ test("authenticated Project CRUD persists and updates Activity and analytics", a
   const title = `QA launch ${Date.now()}`;
 
   await signUp(page, "qa-crud");
+  await expect(page.locator(".skip-link")).toHaveAccessibleName("Skip to content");
+  await expect(page.getByRole("link", { name: "SignalBoard dashboard" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Secondary navigation" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Your Project overview" })).toBeVisible();
   await expectNoBlockingAxeViolations(page);
@@ -150,6 +154,10 @@ test("authenticated mobile menu exposes locale and sign-out without overflow", a
   await page.getByRole("menuitemradio", { name: /Ukrainian/ }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "uk", { timeout: 20_000 });
   await expect(page.getByRole("heading", { name: "Огляд ваших проєктів" })).toBeVisible();
+  await expect(page.locator(".skip-link")).toHaveAccessibleName("Перейти до основного вмісту");
+  await expect(page.getByRole("link", { name: "Панель керування SignalBoard" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Основна навігація" })).toBeVisible();
+  await expectNoBlockingAxeViolations(page);
 
   await page.getByRole("button", { name: "Відкрити навігацію" }).click();
   await page.getByRole("menuitem", { name: "Вийти" }).click();

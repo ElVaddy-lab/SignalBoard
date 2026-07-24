@@ -18,8 +18,8 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["Pixel 5"] } }
   ],
-  webServer: {
-    command: "pnpm dev",
+  webServer: process.env.PLAYWRIGHT_EXTERNAL_SERVER ? undefined : {
+    command: "node node_modules/next/dist/bin/next dev",
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000
