@@ -18,6 +18,7 @@ The approved visual direction is **Warm Signal**: an ink application shell, warm
 - Explicit idempotent 18-Project sample loader.
 - English by default; optional Ukrainian through the `EN` / `UA` language menu.
 - Desktop table, mobile cards, responsive Sheets/dialogs and designed system states.
+- Public, read-only portfolio demo with Dashboard, Projects, Activity and an optional guided tour.
 
 Not included in v1: teams, roles, invitations, Tasks, files, comments, sharing, payments, notifications or AI features.
 
@@ -68,6 +69,17 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000), create an account and load the Sample Project Set from the empty Dashboard.
 
+### Public read-only demo
+
+Open [http://localhost:3000/demo](http://localhost:3000/demo) to explore a populated Dashboard without signing in. The demo also includes:
+
+- `/demo/projects` for URL-driven search, filters, sorting and pagination;
+- `/demo/projects/[id]` for read-only Project details and Activity;
+- English and Ukrainian content;
+- a keyboard-friendly optional three-step guided tour.
+
+Demo routes use deterministic in-process fixture data. They do not create an Auth User, connect to Supabase, invoke Project Server Actions or write database rows. The private `/dashboard` and `/projects` routes continue to use Supabase Auth, Server Actions and RLS.
+
 ## Verification
 
 ```powershell
@@ -77,6 +89,7 @@ pnpm test:run
 pnpm test:db
 pnpm build
 pnpm test:e2e
+pnpm exec playwright test tests/e2e/demo.spec.ts
 ```
 
 `pnpm check` runs the non-browser application release gate. Database and browser suites are separate because they own local services.
@@ -100,6 +113,7 @@ pnpm screenshots:portfolio
 - `src/features/projects/` — Project contracts, queries/actions and responsive experiences.
 - `src/features/dashboard/` — metrics, charts and Dashboard states.
 - `src/features/preferences/` and `src/i18n/` — locale/timezone persistence and messages.
+- `src/features/demo/` — public fixture data, read-only presentation and guided tour.
 - `supabase/migrations/` — authoritative schema, RLS, triggers and RPCs.
 - `supabase/tests/database/` — pgTAP database-contract tests.
 - `src/types/database.generated.ts` — generated Supabase database types.

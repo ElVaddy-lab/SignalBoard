@@ -6,8 +6,13 @@ const privatePrefixes = ["/dashboard", "/projects"];
 const publicOnlyPaths = ["/sign-in", "/sign-up"];
 
 export async function proxy(request: NextRequest) {
-  const { response, claims } = await updateSession(request);
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/demo" || pathname.startsWith("/demo/")) {
+    return NextResponse.next({ request });
+  }
+
+  const { response, claims } = await updateSession(request);
   const privatePath = privatePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
   if (privatePath && !claims?.sub) {

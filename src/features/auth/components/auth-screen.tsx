@@ -1,5 +1,6 @@
 import { AuthForm } from "@/features/auth/components/auth-form";
 import { LanguageMenu } from "@/components/layout/language-menu";
+import Link from "next/link";
 import type { AppLocale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 
@@ -35,6 +36,9 @@ export function AuthScreen({ locale, messages, mode }: AuthScreenProps) {
             <p>{description}</p>
           </header>
           <AuthForm locale={locale} messages={messages} mode={mode} />
+          <Link className="auth-demo-link" href="/demo">
+            {locale === "uk" ? "Переглянути демо" : "View live demo"}
+          </Link>
         </div>
       </section>
     </main>

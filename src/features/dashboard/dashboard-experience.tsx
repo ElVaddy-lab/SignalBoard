@@ -20,7 +20,17 @@ import { getDeadlineState } from "./contracts";
 import type { DashboardData } from "./server";
 import styles from "./dashboard.module.css";
 
-export async function DashboardExperience({ data }: { data: DashboardData }) {
+export async function DashboardExperience({
+  data,
+  projectBasePath = "/projects",
+  heading,
+  intro,
+}: {
+  data: DashboardData;
+  projectBasePath?: string;
+  heading?: string;
+  intro?: string;
+}) {
   if (!data.metrics.total) return <DashboardEmpty />;
 
   const locale = await getLocale();
@@ -40,8 +50,8 @@ export async function DashboardExperience({ data }: { data: DashboardData }) {
     <div className={styles.dashboard}>
       <header className={styles.dashboardIntro}>
         <div>
-          <h1>{t("greeting")}</h1>
-          <p>{t("intro")}</p>
+          <h1>{heading ?? t("greeting")}</h1>
+          <p>{intro ?? t("intro")}</p>
         </div>
       </header>
       <section aria-label={t("metrics")} className={styles.metricsGrid} tabIndex={0}>
@@ -103,6 +113,7 @@ export async function DashboardExperience({ data }: { data: DashboardData }) {
               High: projects("priorityValues.High"),
             }}
             locale={locale}
+            projectBasePath={projectBasePath}
             projects={recentProjects}
             statusLabels={{
               Planning: projects("statusValues.Planning"),
@@ -117,6 +128,7 @@ export async function DashboardExperience({ data }: { data: DashboardData }) {
             activity={activity}
             locale={locale}
             messages={activity.map((item) => activityT(activityMessageKey(item)))}
+            projectBasePath={projectBasePath}
             title={t("recentActivity")}
           />
         </div>
@@ -166,6 +178,7 @@ export async function DashboardExperience({ data }: { data: DashboardData }) {
           <UpcomingDeadlines
             deadlineLabels={deadlineLabels}
             locale={locale}
+            projectBasePath={projectBasePath}
             projects={upcoming}
             title={t("upcomingDeadlines")}
             viewAll={t("viewAll")}
@@ -339,6 +352,7 @@ function UpcomingDeadlines({
   deadlineLabels,
   emptyLabel,
   locale,
+  projectBasePath,
   projects,
   title,
   viewAll,
@@ -346,6 +360,7 @@ function UpcomingDeadlines({
   deadlineLabels: { noDeadline: string; overdue: string; upcoming: string };
   emptyLabel: string;
   locale: AppLocale;
+  projectBasePath: string;
   projects: Project[];
   title: string;
   viewAll: string;
@@ -354,7 +369,7 @@ function UpcomingDeadlines({
     <Panel className={styles.deadlinesPanel}>
       <header>
         <h2>{title}</h2>
-        <Link href="/projects?deadline=upcoming">{viewAll}</Link>
+        <Link href={`${projectBasePath}?deadline=upcoming`}>{viewAll}</Link>
       </header>
       {projects.length ? (
         <ul>
@@ -366,7 +381,7 @@ function UpcomingDeadlines({
                   aria-hidden="true"
                   className={overdue ? styles.deadlineDotOverdue : styles.deadlineDot}
                 />
-                <Link href={`/projects/${project.id}`}>{project.title}</Link>
+                <Link href={`${projectBasePath}/${project.id}`}>{project.title}</Link>
                 <time>{formatDate(project.deadline, locale, deadlineLabels.noDeadline)}</time>
                 <b className={overdue ? styles.overdue : undefined}>
                   {overdue ? deadlineLabels.overdue : deadlineLabels.upcoming}
@@ -387,6 +402,7 @@ function RecentProjects({
   labels,
   locale,
   priorityLabels,
+  projectBasePath,
   projects,
   statusLabels,
   title,
@@ -403,6 +419,7 @@ function RecentProjects({
   };
   locale: AppLocale;
   priorityLabels: Record<Project["priority"], string>;
+  projectBasePath: string;
   projects: Project[];
   statusLabels: Record<Project["status"], string>;
   title: string;
@@ -412,7 +429,7 @@ function RecentProjects({
     <Panel className={styles.recentProjects}>
       <header>
         <h2>{title}</h2>
-        <Link href="/projects">{viewAll}</Link>
+        <Link href={projectBasePath}>{viewAll}</Link>
       </header>
       <div className={styles.recentTable}>
         <div className={styles.recentTableHead}>
@@ -425,7 +442,7 @@ function RecentProjects({
         </div>
         {projects.map((project) => (
           <div className={styles.recentRow} key={project.id}>
-            <Link href={`/projects/${project.id}`}>{project.title}</Link>
+            <Link href={`${projectBasePath}/${project.id}`}>{project.title}</Link>
             <Status label={statusLabels[project.status]} value={project.status} />
             <Priority label={priorityLabels[project.priority]} value={project.priority} />
             <span>{project.projectLead}</span>
@@ -453,11 +470,13 @@ function RecentActivity({
   activity,
   locale,
   messages,
+  projectBasePath,
   title,
 }: {
   activity: ProjectActivity[];
   locale: AppLocale;
   messages: string[];
+  projectBasePath: string;
   title: string;
 }) {
   return (
@@ -473,7 +492,7 @@ function RecentActivity({
               <b>{messages[index]}</b>
               <small>
                 {item.projectId ? (
-                  <Link href={`/projects/${item.projectId}`}>{item.projectTitle}</Link>
+                  <Link href={`${projectBasePath}/${item.projectId}`}>{item.projectTitle}</Link>
                 ) : (
                   item.projectTitle
                 )}
