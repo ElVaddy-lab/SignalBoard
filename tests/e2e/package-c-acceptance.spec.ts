@@ -139,7 +139,7 @@ test("Package C Dashboard remains stable and accessible across viewports and loc
     {
       name: "signalboard-locale",
       value: "uk",
-      url: "http://localhost:3000",
+      url: new URL(page.url()).origin,
     },
   ]);
   await page.setViewportSize({ width: 390, height: 844 });
