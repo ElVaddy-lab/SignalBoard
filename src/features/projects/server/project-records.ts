@@ -9,6 +9,8 @@ import type {
 } from "@/data/projects";
 import type { Database, Json } from "@/types/database.generated";
 
+import { getCompletionForStatus } from "../project-completion";
+
 type ProjectDatabaseRow = Database["public"]["Tables"]["projects"]["Row"];
 type ActivityDatabaseRow = Database["public"]["Tables"]["project_activities"]["Row"];
 
@@ -57,13 +59,6 @@ const priorityLabels: Record<string, ProjectPriority> = {
   high: "High",
 };
 
-const visualCompletion: Record<ProjectStatus, number> = {
-  Planning: 15,
-  Active: 55,
-  Review: 80,
-  Completed: 100,
-};
-
 const activityTypes = new Set<ProjectActivityType>([
   "created",
   "updated",
@@ -92,7 +87,7 @@ export function mapProjectRecord(row: ProjectRecord): Project {
     priority: priorityLabels[row.priority] ?? "Medium",
     projectLead: row.project_lead,
     deadline: row.deadline,
-    completion: visualCompletion[status],
+    completion: getCompletionForStatus(status),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: null,

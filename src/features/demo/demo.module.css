@@ -33,16 +33,6 @@
 .filters label { color: var(--sb-ink-muted, #6e6a63); display: grid; font-size: 11px; font-weight: 750; gap: 6px; letter-spacing: .04em; text-transform: uppercase; }
 .filters input, .filters select { background: white; border: 1px solid var(--sb-border-strong, #c9bfaf); border-radius: 5px; color: var(--sb-ink, #20201e); font: inherit; min-height: 40px; padding: 0 10px; width: 100%; }
 .filters button { background: var(--sb-petrol, #0f5962); border: 0; border-radius: 6px; color: white; cursor: pointer; font: inherit; font-weight: 700; min-height: 40px; padding: 0 14px; }
-.projectGrid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.projectCard { background: var(--sb-surface, #fbf9f4); border: 1px solid var(--sb-border, #dcd4c7); border-radius: 8px; display: grid; gap: 16px; padding: 20px; }
-.projectCard header { align-items: start; display: flex; gap: 12px; justify-content: space-between; }
-.projectCard h2 { font-size: 20px; letter-spacing: -.025em; margin: 0; }
-.projectCard h2 a { color: inherit; text-decoration: none; }
-.projectCard p { color: var(--sb-ink-muted, #6e6a63); line-height: 1.5; margin: 0; }
-.projectMeta { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
-.projectMeta div { display: grid; gap: 3px; }
-.projectMeta dt { color: var(--sb-ink-muted, #6e6a63); font-size: 11px; text-transform: uppercase; }
-.projectMeta dd { font-size: 13px; font-weight: 650; margin: 0; }
 .pagination { align-items: center; display: flex; gap: 10px; justify-content: center; margin-top: 24px; }
 .pagination a, .pagination span { border: 1px solid var(--sb-border-strong, #c9bfaf); border-radius: 5px; color: inherit; min-width: 38px; padding: 9px 11px; text-align: center; text-decoration: none; }
 .pagination span { background: var(--sb-petrol, #0f5962); border-color: var(--sb-petrol, #0f5962); color: white; }
@@ -86,8 +76,6 @@
   .filters { grid-template-columns: 1fr 1fr; }
   .filters label:first-child { grid-column: 1 / -1; }
   .filters button { grid-column: 1 / -1; }
-  .projectGrid { grid-template-columns: 1fr; }
-  .projectMeta { grid-template-columns: 1fr 1fr; }
   .detailHeader { flex-direction: column; }
   .detailStats { grid-template-columns: 1fr 1fr; }
   .activityPanel li { grid-template-columns: 30px 1fr; }

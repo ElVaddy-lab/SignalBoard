@@ -40,7 +40,10 @@ export function DemoProjectDetail({
         </div>
         <strong>{t(`statusValues.${project.status}`)}</strong>
       </header>
-      <ProgressBar value={project.completion} />
+      <ProgressBar
+        ariaLabel={t("completionPercent", { value: project.completion })}
+        value={project.completion}
+      />
       <dl className={styles.detailStats}>
         <div><dt>{t("projectLead")}</dt><dd>{project.projectLead}</dd></div>
         <div><dt>{t("priority")}</dt><dd>{t(`priorityValues.${project.priority}`)}</dd></div>

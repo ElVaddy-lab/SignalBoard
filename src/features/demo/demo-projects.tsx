@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { createTranslator } from "next-intl";
 
-import { ProgressBar } from "@/components/ui/progress-bar";
 import type { Project } from "@/data/projects";
-import { getDeadlineState } from "@/features/dashboard/contracts";
+import {
+  ProjectsListPresentation,
+  type ProjectDeadlineLabels,
+  type ProjectsListLabels,
+} from "@/features/projects/projects-list-presentation";
 import type { AppLocale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 
@@ -16,6 +19,7 @@ type DemoList = ReturnType<typeof listDemoProjects>;
 function queryHref(
   searchParams: Record<string, string | string[] | undefined>,
   page: number,
+  basePath = "/demo/projects",
 ) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(searchParams)) {
@@ -25,7 +29,7 @@ function queryHref(
   }
   if (page > 1) params.set("page", String(page));
   const query = params.toString();
-  return query ? `/demo/projects?${query}` : "/demo/projects";
+  return query ? `${basePath}?${query}` : basePath;
 }
 
 export function DemoProjectsDirectory({
@@ -49,6 +53,37 @@ export function DemoProjectsDirectory({
 }) {
   const copy = getDemoCopy(locale);
   const t = createTranslator({ locale, messages, namespace: "projects" });
+  const deadlineLabels: ProjectDeadlineLabels = {
+    none: t("noDeadline"),
+    overdue: t("overdue"),
+    upcoming: t("upcoming"),
+    completed: t("completed"),
+    scheduled: t("scheduled"),
+  };
+  const labels: ProjectsListLabels = {
+    actions: t("actions"),
+    completion: t("completion"),
+    completionPercent: (value) => t("completionPercent", { value }),
+    deadline: t("deadline"),
+    matchingCaption: t("matchingCaption"),
+    priority: t("priority"),
+    priorityValues: {
+      Low: t("priorityValues.Low"),
+      Medium: t("priorityValues.Medium"),
+      High: t("priorityValues.High"),
+    },
+    project: t("project"),
+    projectLead: t("projectLead"),
+    status: t("status"),
+    statusValues: {
+      Planning: t("statusValues.Planning"),
+      Active: t("statusValues.Active"),
+      Review: t("statusValues.Review"),
+      Completed: t("statusValues.Completed"),
+    },
+    updated: t("updated"),
+    viewProject: t("viewProject"),
+  };
 
   return (
     <section className={styles.directory}>
@@ -62,15 +97,24 @@ export function DemoProjectsDirectory({
       <form action="/demo/projects" className={styles.filters} method="get">
         <label>
           {t("search")}
-          <input defaultValue={params.q} name="q" placeholder={t("searchPlaceholder")} type="search" />
+          <input
+            defaultValue={params.q}
+            name="q"
+            placeholder={t("searchPlaceholder")}
+            type="search"
+          />
         </label>
         <label>
           {t("status")}
           <select defaultValue={params.status[0] ?? ""} name="status">
             <option value="">{copy.anyStatus}</option>
-            {(["Planning", "Active", "Review", "Completed"] as const).map((value) => (
-              <option key={value} value={value}>{t(`statusValues.${value}`)}</option>
-            ))}
+            {(["Planning", "Active", "Review", "Completed"] as const).map(
+              (value) => (
+                <option key={value} value={value}>
+                  {t(`statusValues.${value}`)}
+                </option>
+              ),
+            )}
           </select>
         </label>
         <label>
@@ -78,7 +122,9 @@ export function DemoProjectsDirectory({
           <select defaultValue={params.priority[0] ?? ""} name="priority">
             <option value="">{copy.anyPriority}</option>
             {(["Low", "Medium", "High"] as const).map((value) => (
-              <option key={value} value={value}>{t(`priorityValues.${value}`)}</option>
+              <option key={value} value={value}>
+                {t(`priorityValues.${value}`)}
+              </option>
             ))}
           </select>
         </label>
@@ -105,18 +151,27 @@ export function DemoProjectsDirectory({
       </form>
       {data.projects.length ? (
         <>
-          <div className={styles.projectGrid}>
-            {data.projects.map((project) => (
-              <DemoProjectCard key={project.id} locale={locale} messages={messages} project={project} />
-            ))}
-          </div>
+          <ProjectsListPresentation
+            basePath="/demo/projects"
+            deadlineLabels={deadlineLabels}
+            labels={labels}
+            locale={locale}
+            projects={data.projects}
+          />
           {data.totalPages > 1 ? (
             <nav aria-label={t("pagination")} className={styles.pagination}>
-              {Array.from({ length: data.totalPages }, (_, index) => index + 1).map((page) =>
+              {Array.from(
+                { length: data.totalPages },
+                (_, index) => index + 1,
+              ).map((page) =>
                 page === data.page ? (
-                  <span aria-current="page" key={page}>{page}</span>
+                  <span aria-current="page" key={page}>
+                    {page}
+                  </span>
                 ) : (
-                  <Link href={queryHref(searchParams, page)} key={page}>{page}</Link>
+                  <Link href={queryHref(searchParams, page)} key={page}>
+                    {page}
+                  </Link>
                 ),
               )}
             </nav>
@@ -130,43 +185,5 @@ export function DemoProjectsDirectory({
         </div>
       )}
     </section>
-  );
-}
-
-function DemoProjectCard({
-  locale,
-  messages,
-  project,
-}: {
-  locale: AppLocale;
-  messages: Messages;
-  project: Project;
-}) {
-  const t = createTranslator({ locale, messages, namespace: "projects" });
-  const deadlineState = getDeadlineState(project.deadline, project.status);
-  const deadline = project.deadline
-    ? new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" }).format(
-        new Date(`${project.deadline}T00:00:00Z`),
-      )
-    : t("noDeadline");
-
-  return (
-    <article className={styles.projectCard}>
-      <header>
-        <div>
-          <h2><Link href={`/demo/projects/${project.id}`}>{project.title}</Link></h2>
-          <p>{project.description}</p>
-        </div>
-        <strong>{t(`statusValues.${project.status}`)}</strong>
-      </header>
-      <ProgressBar value={project.completion} />
-      <dl className={styles.projectMeta}>
-        <div><dt>{t("priority")}</dt><dd>{t(`priorityValues.${project.priority}`)}</dd></div>
-        <div><dt>{t("projectLead")}</dt><dd>{project.projectLead}</dd></div>
-        <div><dt>{t("completion")}</dt><dd>{project.completion}%</dd></div>
-        <div><dt>{t("deadline")}</dt><dd>{deadline}</dd></div>
-        <div><dt>{t("filterByDeadline")}</dt><dd>{t(deadlineState === "none" ? "noDeadline" : deadlineState)}</dd></div>
-      </dl>
-    </article>
   );
 }
